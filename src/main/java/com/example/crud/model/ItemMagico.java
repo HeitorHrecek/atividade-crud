@@ -1,64 +1,65 @@
 package com.example.crud.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class ItemMagico {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String nomeItem;
-    private int tipo;
-    private int def, atk;
+    private String nome;
+    private String tipo;
+    private int forca;
+    private int defesa;
 
-    public String getNomeItem() {
-        return nomeItem;
+    public ItemMagico(String nome, String tipo, int forca, int defesa) {
+        this.nome = nome;
+        this.tipo = tipo;
+        this.forca = forca;
+        this.defesa = defesa;
     }
 
-    public void setNomeItem(String nomeItem) {
-        this.nomeItem = nomeItem;
+    public Long getId() {
+        return id;
     }
 
-    public int getTipo() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(int tipo) {
+    public void setTipo(String tipo) {
         this.tipo = tipo;
     }
 
-    public int getDef() {
-        return def;
+    public int getForca() {
+        return forca;
     }
 
-    public void setDef(int def) {
-        this.def = def;
+    public void setForca(int forca) {
+        this.forca = forca;
     }
 
-    public int getAtk() {
-        return atk;
+    public int getDefesa() {
+        return defesa;
     }
 
-    public void setAtk(int atk) {
-        this.atk = atk;
+    public void setDefesa(int defesa) {
+        this.defesa = defesa;
     }
-
-    private void verificarTipo() {
-        if(tipo == 1) {
-            def = 0;
-            atk = 3;
-        }else if (tipo == 2) {
-            def = 3;
-            atk = 0;
-        } else if (tipo == 3) {
-            def = 5;
-            atk = 3;
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
 }
