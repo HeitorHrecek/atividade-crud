@@ -1,5 +1,6 @@
 package com.example.crud.controller;
 
+import com.example.crud.model.ItemMagico;
 import com.example.crud.model.Personagem;
 import com.example.crud.service.PersonagemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,25 @@ public class PersonagemController {
     public ResponseEntity<Personagem> criarPersonagem(@RequestBody Personagem personagem) {
         return ResponseEntity.status(HttpStatus.CREATED).body(personagemService.criarPersonagem(personagem));
     }
+    @PostMapping("/{id}/adicionar-item")
+    public ResponseEntity<Personagem> adicionarItem(@PathVariable Long id, @RequestBody ItemMagico item) {
+        return ResponseEntity.ok(personagemService.adicionarItemAoPersonagem(id, item));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Personagem> buscarPersonagem(@PathVariable Long id) {
         return personagemService.buscarPersonagem(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+    @GetMapping("/{id}/amuleto")
+    public ResponseEntity<ItemMagico> buscarAmuleto(@PathVariable Long id) {
+        Personagem p = personagemService.buscarPersonagem(id).orElseThrow(() -> new RuntimeException("Personagem não encontrado"));
+        return p.getItensMagicos().stream()
+                .filter(item -> item.getTipo().equals("Amuleto"))
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
@@ -48,4 +62,9 @@ public class PersonagemController {
         personagemService.removerPersonagem(id);
         return ResponseEntity.noContent().build();
     }
+    @DeleteMapping("/{id}/remover-item/{itemId}")
+    public ResponseEntity<Personagem> removerItem(@PathVariable Long id, @PathVariable Long itemId) {
+        return ResponseEntity.ok(personagemService.removerItemDoPersonagem(id, itemId));
+    }
+
 }

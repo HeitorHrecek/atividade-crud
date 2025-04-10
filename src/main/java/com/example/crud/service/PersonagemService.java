@@ -16,6 +16,10 @@ public class PersonagemService {
     private PersonagemRepository personagemRepository;
 
     public Personagem criarPersonagem(Personagem personagem) {
+        int totalPontos = personagem.getForca() + personagem.getDefesa();
+        if (totalPontos != 10) {
+            throw new RuntimeException("A soma de força e defesa deve ser exatamente 10.");
+        }
         return personagemRepository.save(personagem);
     }
 
@@ -36,4 +40,10 @@ public class PersonagemService {
         personagem.adicionarItemMagico(itemMagico);
         return personagemRepository.save(personagem);
     }
+    public Personagem removerItemDoPersonagem(Long id, Long itemId) {
+        Personagem personagem = personagemRepository.findById(id).orElseThrow(() -> new RuntimeException("Personagem não encontrado"));
+        personagem.getItensMagicos().removeIf(item -> item.getId().equals(itemId));
+        return personagemRepository.save(personagem);
+    }
+
 }
