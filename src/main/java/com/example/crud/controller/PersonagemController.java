@@ -27,16 +27,19 @@ public class PersonagemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Personagem> buscarPersonagem(@PathVariable Long id) {
-        return personagemService.buscarPersonagem(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<Personagem> buscarPersonagem(@PathVariable Long id) {        return personagemService.buscarPersonagem(id)
+                .map(personagem -> {
+                    personagem.setForca(personagem.getForcaTotal());
+                    personagem.setDefesa(personagem.getDefesaTotal());
+                    return ResponseEntity.ok(personagem);
+                })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
     @GetMapping("/{id}/amuleto")
     public ResponseEntity<ItemMagico> buscarAmuleto(@PathVariable Long id) {
         Personagem p = personagemService.buscarPersonagem(id).orElseThrow(() -> new RuntimeException("Personagem não encontrado"));
         return p.getItensMagicos().stream()
-                .filter(item -> item.getTipo().equals("Amuleto"))
+                .filter(item -> item.getTipo() == ItemMagico.TipoItem.AMULETO)
                 .findFirst()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -44,18 +47,24 @@ public class PersonagemController {
 
     @GetMapping
     public List<Personagem> listarPersonagens() {
-        return personagemService.listarPersonagens();
+        List<Personagem> personagens = personagemService.listarPersonagens();
+        personagens.forEach(personagem -> {
+            personagem.setForca(personagem.getForcaTotal());
+            personagem.setDefesa(personagem.getDefesaTotal());
+        });
+        return personagens;
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Personagem> atualizarPersonagem(@PathVariable Long id, @RequestBody Personagem personagem) {
-        return personagemService.buscarPersonagem(id)
-                .map(p -> {
-                    p.setNome(personagem.getNome());
-                    return ResponseEntity.ok(personagemService.criarPersonagem(p));
-                })
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        try {
+            Personagem personagemAtualizado = personagemService.atualizarPersonagem(id, personagem);
+            return ResponseEntity.ok(personagemAtualizado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
+    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> removerPersonagem(@PathVariable Long id) {

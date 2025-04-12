@@ -1,8 +1,10 @@
 package com.example.crud.model;
 
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.*;
+import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 public class Personagem {
@@ -10,17 +12,40 @@ public class Personagem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Nome é obrigatório")
     private String nome;
+
+    @NotBlank(message = "Nome do aventureiro é obrigatório")
     private String nomeAventureiro;
-    private String classe;
+
+    @NotNull(message = "Classe é obrigatória")
+    @Enumerated(EnumType.STRING)
+    private ClassePersonagem classe;
+
+    @Min(value = 1, message = "Level deve ser maior que 0")
     private int level;
+
+    @Min(value = 0, message = "Força não pode ser negativa")
+    @Max(value = 10, message = "Força não pode ser maior que 10")
     private int forca;
+
+    @Min(value = 0, message = "Defesa não pode ser negativa")
+    @Max(value = 10, message = "Defesa não pode ser maior que 10")
     private int defesa;
 
-    @ManyToMany
-    private List<ItemMagico> itensMagicos;
+    @OneToMany(mappedBy = "personagem", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<ItemMagico> itensMagicos = new ArrayList<>();
 
-    public Personagem(String nome, String nomeAventureiro, String classe, int level, int forca, int defesa) {
+    public enum ClassePersonagem {
+        GUERREIRO, MAGO, ARQUEIRO, LADINO, BARDO
+    }
+
+    public Personagem() {
+        
+    }
+
+    public Personagem(String nome, String nomeAventureiro, ClassePersonagem classe, int level, int forca, int defesa) {
         this.nome = nome;
         this.nomeAventureiro = nomeAventureiro;
         this.classe = classe;
@@ -30,16 +55,33 @@ public class Personagem {
     }
 
     public void adicionarItemMagico(ItemMagico item) {
-        if (item.getTipo().equals("Amuleto") && temAmuleto()) {
-            throw new RuntimeException("Já possui um amuleto!");
+        if (item.getTipo() == ItemMagico.TipoItem.AMULETO && possuiAmuleto()) {
+            throw new IllegalStateException("Personagem já possui um amuleto");
         }
-        this.itensMagicos.add(item);
-        this.forca += item.getForca();
-        this.defesa += item.getDefesa();
+        itensMagicos.add(item);
+        item.setPersonagem(this);
     }
 
-    private boolean temAmuleto() {
-        return this.itensMagicos.stream().anyMatch(item -> item.getTipo().equals("Amuleto"));
+    public void removerItemMagico(ItemMagico item) {
+        itensMagicos.remove(item);
+        item.setPersonagem(null);
+    }
+
+    public boolean possuiAmuleto() {
+        return itensMagicos.stream()
+                .anyMatch(item -> item.getTipo() == ItemMagico.TipoItem.AMULETO);
+    }
+
+    public int getForcaTotal() {
+        return forca + itensMagicos.stream()
+                .mapToInt(ItemMagico::getForca)
+                .sum();
+    }
+
+    public int getDefesaTotal() {
+        return defesa + itensMagicos.stream()
+                .mapToInt(ItemMagico::getDefesa)
+                .sum();
     }
 
     public Long getId() {
@@ -66,11 +108,11 @@ public class Personagem {
         this.nomeAventureiro = nomeAventureiro;
     }
 
-    public String getClasse() {
+    public ClassePersonagem getClasse() {
         return classe;
     }
 
-    public void setClasse(String classe) {
+    public void setClasse(ClassePersonagem classe) {
         this.classe = classe;
     }
 
@@ -87,6 +129,12 @@ public class Personagem {
     }
 
     public void setForca(int forca) {
+        if (forca < 0 || forca > 10) {
+            throw new IllegalArgumentException("Força deve estar entre 0 e 10");
+        }
+        if (forca + this.defesa > 10) {
+            throw new IllegalArgumentException("A soma de força e defesa não pode exceder 10 pontos");
+        }
         this.forca = forca;
     }
 
@@ -95,6 +143,12 @@ public class Personagem {
     }
 
     public void setDefesa(int defesa) {
+        if (defesa < 0 || defesa > 10) {
+            throw new IllegalArgumentException("Defesa deve estar entre 0 e 10");
+        }
+        if (this.forca + defesa > 10) {
+            throw new IllegalArgumentException("A soma de força e defesa não pode exceder 10 pontos");
+        }
         this.defesa = defesa;
     }
 

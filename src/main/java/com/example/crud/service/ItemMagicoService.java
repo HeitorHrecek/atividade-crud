@@ -21,20 +21,20 @@ public class ItemMagicoService {
         }
 
         switch (itemMagico.getTipo()) {
-            case "Arma":
+            case ARMA:
                 if (itemMagico.getDefesa() != 0)
                     throw new RuntimeException("Itens do tipo Arma devem ter defesa 0.");
                 break;
-            case "Armadura":
+            case ARMADURA:
                 if (itemMagico.getForca() != 0)
                     throw new RuntimeException("Itens do tipo Armadura devem ter força 0.");
                 break;
-            case "Amuleto":
+            case AMULETO:
                 if (itemMagico.getForca() == 0 && itemMagico.getDefesa() == 0)
                     throw new RuntimeException("Amuleto deve ter força ou defesa maior que 0.");
                 break;
             default:
-                throw new RuntimeException("Tipo de item inválido. Use: Arma, Armadura ou Amuleto.");
+                throw new RuntimeException("Tipo de item inválido. Use: ARMA, ARMADURA ou AMULETO.");
         }
 
         return itemMagicoRepository.save(itemMagico);
